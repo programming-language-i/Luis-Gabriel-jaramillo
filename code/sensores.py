@@ -11,21 +11,21 @@ def sensor(numero, temperatura):
 
         print("termino")
 
-        if__name__ == "__main__":
-        threads = {
+if __name__ == "__main__":
+    threads = {
             threading.Thread(target=sensor, args=("sensor 1", 30)),
             threading.Thread(target=sensor, args=("sensor 2", 40)),
             threading.Thread(target=sensor, args=("sensor 3", 50)),
             threading.Thread(target=sensor, args=("sensor 4", 60)),
             threading.Thread(target=sensor, args=("sensor 4", 70)),
 
-        }
+    }
 
-        for thread in threads:
-            thread, start()
+    for thread in threads:
+        thread.start()
 
-            for thread in threads:
-                thread, finish()
+    for thread in threads:
+        thread.join()
 
-                print ("finalizado")
+    print ("finalizado")
 
