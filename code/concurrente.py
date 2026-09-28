@@ -14,8 +14,8 @@ def print_letters():
 
 
 if __name__ == "__main__":
-    p1 = multiprocessing.process(target=print_numbers)
-    p2 = multiprocessing.process(target=print_letters)
+    p1 = multiprocessing.Process(target=print_numbers)
+    p2 = multiprocessing.Process(target=print_letters)
 
     p1.start()
     p2.start()
