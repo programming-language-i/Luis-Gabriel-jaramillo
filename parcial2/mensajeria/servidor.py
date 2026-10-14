@@ -40,7 +40,6 @@ PUERTO = 8000
 def retransmitir(registro: RegistroClientes, emisor: str, texto: str) -> None:
     """Envía "emisor: texto" a todos los conectados menos al emisor."""
     mensaje = f"{emisor}: {texto}"
-    # Se obtiene la copia de destinatarios (fuera del lock para los envíos)
     destinatarios = registro.destinatarios(excepto=emisor)
     for nombre_dest, dest_sock in destinatarios:
         try:
@@ -53,6 +52,9 @@ def atender(
     conexion: socket.socket, direccion: tuple[str, int], registro: RegistroClientes
 ) -> None:
     """Atiende a UN cliente, en su propio hilo, hasta que se desconecta."""
+    nombre = None
+    registrado = False  # <-- Bandera para saber si logró registrarse
+
     with conexion:
         try:
             # 1. Recibir la primera trama con el nombre
@@ -63,8 +65,9 @@ def atender(
             # 2. Registrar el nombre; responder OK o ERROR
             if not registro.insertar(nombre, conexion):
                 enviar_mensaje(conexion, "ERROR: nombre en uso")
-                return
+                return  # Si falla, registrado se queda en False y no borrará a nadie en el finally
 
+            registrado = True  # <-- Marcamos como registrado con éxito
             enviar_mensaje(conexion, "OK")
 
             # 3. Bucle para recibir y retransmitir tramas
@@ -77,8 +80,8 @@ def atender(
         except OSError:
             pass
         finally:
-            # 4. Limpiar el registro al salir o al ocurrir un error
-            if 'nombre' in locals() and nombre:
+            # 4. SOLO se borra del registro si este hilo SÍ logró registrarlo
+            if registrado and nombre:
                 registro.borrar(nombre)
 
 
@@ -98,6 +101,7 @@ def main() -> None:
                 target=atender, args=(conexion, direccion, registro), daemon=True
             )
             hilo.start()
+
 
 if __name__ == "__main__":
     try:
